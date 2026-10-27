@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Go URL Shortener · Lekopien</title>
+  <meta name="description" content="A standard-library-only Go microservice: random base62 codes, custom aliases, click stats, expiring links, atomic persistence and graceful shutdown, in a tiny distroless image.">
+  <link rel="stylesheet" href="style.css">
+  
+</head>
+<body>
+<header class="top"><div class="wrap">
+  <a class="brand" href="https://lekopien.com">lekopien<span>.</span>short</a>
+  <nav><a href="#features">Features</a><a href="#code">Code</a><a href="https://github.com/Lekopien/go-url-shortener">GitHub</a></nav>
+</div></header>
+<main class="wrap">
+  <div class="hero">
+    <span class="tag">Backend · Go</span>
+    <h1>A URL shortener in pure Go</h1>
+    <p class="lead">A standard-library-only Go microservice: random base62 codes, custom aliases, click stats, expiring links, atomic persistence and graceful shutdown, in a tiny distroless image.</p>
+    <div class="btns"><a class="btn" href="https://github.com/Lekopien/go-url-shortener">View source</a><a class="btn ghost" href="#code">Run it locally</a></div>
+  </div>
+  <section id="features"><h2>Highlights</h2><div class="grid"><div class="card"><h3>Zero dependencies</h3><p>net/http with Go 1.22 method routing; nothing else.</p></div><div class="card"><h3>Concurrency-safe</h3><p>RWMutex-guarded store, verified with 200 parallel redirects under the race detector.</p></div><div class="card"><h3>Expiring links</h3><p>Optional TTL per link; expired links answer 410 Gone. The clock is injectable for tests.</p></div><div class="card"><h3>Safe input</h3><p>Only absolute http(s) URLs, 8 KB body cap, validated aliases with reserved route names.</p></div><div class="card"><h3>Crash-safe storage</h3><p>JSON file written via temp file plus atomic rename.</p></div><div class="card"><h3>Small image</h3><p>Multi-stage build to a static binary on distroless, about 10 MB.</p></div></div></section>
+  
+  <section id="code"><h2>Run it</h2><h3>Run</h3><pre><code>git clone https://github.com/Lekopien/go-url-shortener
+cd go-url-shortener
+go run ./cmd/server        # http://localhost:8080
+go test -race ./...</code></pre><h3>Use</h3><pre><code>curl -s localhost:8080/api/links -d &#x27;{&quot;url&quot;:&quot;https://lekopien.com&quot;,&quot;alias&quot;:&quot;home&quot;}&#x27;
+curl -i localhost:8080/home     # 302 Found → https://lekopien.com
+curl -s localhost:8080/api/links/home   # {&quot;clicks&quot;: 1, ...}</code></pre><h3>Core of the redirect handler</h3><pre><code>func (s *Server) redirect(w http.ResponseWriter, r *http.Request) {
+	l, err := s.Store.Resolve(r.PathValue(&quot;code&quot;))
+	switch {
+	case errors.Is(err, ErrExpired):
+		http.Error(w, &quot;this link has expired&quot;, http.StatusGone)
+	case err != nil:
+		http.NotFound(w, r)
+	default:
+		http.Redirect(w, r, l.URL, http.StatusFound)
+	}
+}</code></pre></section>
+  <section><h2>Stack</h2><div class="chips"><span class="chip">Go 1.22+</span><span class="chip">net/http</span><span class="chip">crypto/rand</span><span class="chip">httptest</span><span class="chip">Docker (distroless)</span><span class="chip">GitHub Actions</span></div></section>
+</main>
+<footer><div class="wrap">Built by <a href="https://lekopien.com">Lekopien</a>. Part of the Lekopien project portfolio. <a href="https://github.com/Lekopien/go-url-shortener">Source on GitHub</a>.</div></footer>
+
+</body>
+</html>
