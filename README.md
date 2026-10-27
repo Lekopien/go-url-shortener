@@ -57,3 +57,7 @@ site/                  project page served at short.lekopien.com
 ## License
 
 MIT
+
+## Author
+
+Built by **David Lekopien** ([@Lekopien](https://github.com/Lekopien)) · [lekopien.com](https://lekopien.com)
